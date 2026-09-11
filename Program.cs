@@ -71,12 +71,24 @@ namespace GTron
 				Raylib.BeginMode3D(camera);
 
 				Raylib.DrawGrid(20, 1.0f);
-				renderQueue.Draw();
+				
+				int visibleCount = renderQueue.Draw(
+					camera,
+					InternalWidth,
+					InternalHeight
+				);
 
 				Raylib.EndMode3D();
 
 				Raylib.DrawText("Malla GPU + shader GLSL", 20, 20, 20, Color.White);
 				Raylib.DrawFPS(20, 50);
+				Raylib.DrawText(
+					$"Objetos visibles: {visibleCount} / {objects.Count}",
+					20,
+					80,
+					20,
+					Color.White
+				);
 
 				Raylib.EndDrawing();
 			}

@@ -1,4 +1,7 @@
-﻿namespace GTron.Rendering;
+﻿using Raylib_cs;
+using System.Numerics;
+
+namespace GTron.Rendering;
 
 public sealed class RenderQueue
 {
@@ -9,12 +12,28 @@ public sealed class RenderQueue
 		_items.Add(item);
 	}
 
-	public void Draw()
+	public int Draw(Camera3D camera, int screenWidth, int screenHeight)
 	{
+		int visibleCount = 0;
+
 		foreach (RenderItem item in _items)
 		{
+			bool visible = Frustum.ContainsSphere(
+				camera,
+				item.WorldPosition,
+				item.BoundingSphereRadius,
+				screenWidth,
+				screenHeight
+			);
+
+			if (!visible)
+				continue;
+
 			item.Mesh.Draw(item.WorldMatrix);
+			visibleCount++;
 		}
+
+		return visibleCount;
 	}
 
 	public void Clear()
