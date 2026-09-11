@@ -98,21 +98,30 @@ namespace GTron
 
 		private static void UpdateCamera(ref Camera3D camera)
 		{
+			float speed = 5.0f * Raylib.GetFrameTime();
+
+			Vector3 forward =
+				Vector3.Normalize(camera.Target - camera.Position);
+
+			Vector3 right =
+				Vector3.Normalize(Vector3.Cross(forward, camera.Up));
+
 			Vector3 movement = Vector3.Zero;
 
 			if (Raylib.IsKeyDown(KeyboardKey.W))
-				movement.Z -= 0.05f;
+				movement += forward * speed;
 
 			if (Raylib.IsKeyDown(KeyboardKey.S))
-				movement.Z += 0.05f;
-
-			if (Raylib.IsKeyDown(KeyboardKey.A))
-				movement.X -= 0.05f;
+				movement -= forward * speed;
 
 			if (Raylib.IsKeyDown(KeyboardKey.D))
-				movement.X += 0.05f;
+				movement += right * speed;
+
+			if (Raylib.IsKeyDown(KeyboardKey.A))
+				movement -= right * speed;
 
 			camera.Position += movement;
+			camera.Target += movement;
 		}
 	}
 }

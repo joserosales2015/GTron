@@ -14,8 +14,7 @@ public sealed class RenderQueue
 
 	public int Draw(Camera3D camera, int screenWidth, int screenHeight)
 	{
-		float aspectRatio =
-			screenWidth / (float)screenHeight;
+		float aspectRatio = screenWidth / (float)screenHeight;
 
 		Frustum frustum = new Frustum(
 			camera,
@@ -26,14 +25,25 @@ public sealed class RenderQueue
 
 		foreach (RenderItem item in _items)
 		{
-			if (!frustum.ContainsSphere(
-					item.WorldPosition,
-					item.BoundingSphereRadius))
-			{
+			item.GetWorldAabb(
+				out Vector3 minimum,
+				out Vector3 maximum
+			);
+
+			if (!frustum.ContainsAabb(minimum, maximum))
 				continue;
-			}
 
 			item.Mesh.Draw(item.WorldMatrix);
+
+			Raylib.DrawBoundingBox(
+				new BoundingBox
+				{
+					Min = minimum,
+					Max = maximum
+				},
+				Color.Yellow
+			);
+
 			visibleCount++;
 		}
 

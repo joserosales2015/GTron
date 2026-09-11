@@ -29,23 +29,15 @@ public readonly struct Frustum
 	private readonly FrustumPlane _top;
 	private readonly FrustumPlane _bottom;
 
-	public Frustum(
-		Camera3D camera,
-		float aspectRatio,
-		float nearDistance = 0.1f,
-		float farDistance = 50.0f)
+	public Frustum(Camera3D camera, float aspectRatio, float nearDistance = 0.1f, float farDistance = 50.0f)
 	{
-		Vector3 forward =
-			Vector3.Normalize(camera.Target - camera.Position);
+		Vector3 forward = Vector3.Normalize(camera.Target - camera.Position);
 
-		Vector3 right =
-			Vector3.Normalize(Vector3.Cross(forward, camera.Up));
+		Vector3 right = Vector3.Normalize(Vector3.Cross(forward, camera.Up));
 
-		Vector3 up =
-			Vector3.Normalize(Vector3.Cross(right, forward));
+		Vector3 up = Vector3.Normalize(Vector3.Cross(right, forward));
 
-		float verticalAngle =
-			camera.FovY * MathF.PI / 180.0f;
+		float verticalAngle = camera.FovY * MathF.PI / 180.0f;
 
 		float horizontalAngle =
 			2.0f * MathF.Atan(
@@ -63,25 +55,56 @@ public readonly struct Frustum
 		_near = new FrustumPlane(forward, nearPoint);
 		_far = new FrustumPlane(-forward, farPoint);
 
+		float horizontalSlope =	MathF.Tan(halfHorizontal);
+
+		float verticalSlope = MathF.Tan(halfVertical);
+
 		_left = new FrustumPlane(
-			forward + right * MathF.Tan(halfHorizontal),
+			right + forward * horizontalSlope,
 			camera.Position
 		);
 
 		_right = new FrustumPlane(
-			forward - right * MathF.Tan(halfHorizontal),
+			-right + forward * horizontalSlope,
 			camera.Position
 		);
 
 		_bottom = new FrustumPlane(
-			forward + up * MathF.Tan(halfVertical),
+			up + forward * verticalSlope,
 			camera.Position
 		);
 
 		_top = new FrustumPlane(
-			forward - up * MathF.Tan(halfVertical),
+			-up + forward * verticalSlope,
 			camera.Position
 		);
+	}
+
+	public bool ContainsAabb(Vector3 minimum, Vector3 maximum)
+	{
+		FrustumPlane[] planes =
+		{
+			_near,
+			_far,
+			_left,
+			_right,
+			_top,
+			_bottom
+		};
+
+		foreach (FrustumPlane plane in planes)
+		{
+			Vector3 positiveVertex = new(
+				plane.Normal.X >= 0.0f ? maximum.X : minimum.X,
+				plane.Normal.Y >= 0.0f ? maximum.Y : minimum.Y,
+				plane.Normal.Z >= 0.0f ? maximum.Z : minimum.Z
+			);
+
+			if (plane.SignedDistance(positiveVertex) < 0.0f)
+				return false;
+		}
+
+		return true;
 	}
 
 	public bool ContainsSphere(Vector3 center, float radius)
@@ -94,10 +117,7 @@ public readonly struct Frustum
 			&& IsInside(_bottom, center, radius);
 	}
 
-	private static bool IsInside(
-		FrustumPlane plane,
-		Vector3 center,
-		float radius)
+	private static bool IsInside(FrustumPlane plane, Vector3 center, float radius)
 	{
 		return plane.SignedDistance(center) >= -radius;
 	}
