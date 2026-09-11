@@ -14,20 +14,24 @@ public sealed class RenderQueue
 
 	public int Draw(Camera3D camera, int screenWidth, int screenHeight)
 	{
+		float aspectRatio =
+			screenWidth / (float)screenHeight;
+
+		Frustum frustum = new Frustum(
+			camera,
+			aspectRatio
+		);
+
 		int visibleCount = 0;
 
 		foreach (RenderItem item in _items)
 		{
-			bool visible = Frustum.ContainsSphere(
-				camera,
-				item.WorldPosition,
-				item.BoundingSphereRadius,
-				screenWidth,
-				screenHeight
-			);
-
-			if (!visible)
+			if (!frustum.ContainsSphere(
+					item.WorldPosition,
+					item.BoundingSphereRadius))
+			{
 				continue;
+			}
 
 			item.Mesh.Draw(item.WorldMatrix);
 			visibleCount++;
