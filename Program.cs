@@ -1,5 +1,8 @@
-﻿using Raylib_cs;
+﻿using GTron.Rendering;
+using Raylib_cs;
 using System.Numerics;
+using GTron.Scene;
+using System.Collections.Generic;
 
 namespace GTron
 {
@@ -10,7 +13,13 @@ namespace GTron
 
 		static void Main(string[] args)
 		{
-			Raylib.InitWindow(InternalWidth, InternalHeight, "Raylib Motor 3D");
+			Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint);
+			Raylib.InitWindow(
+				InternalWidth,
+				InternalHeight,
+				"GTron - Shader GPU"
+			);
+
 			Raylib.SetTargetFPS(60);
 
 			var camera = new Camera3D
@@ -22,52 +31,76 @@ namespace GTron
 				Projection = CameraProjection.Perspective
 			};
 
+			using var cube = new GpuCubeDemo(
+				"Assets/Shaders/basic.vs",
+				"Assets/Shaders/basic.fs"
+			);
+
+			var renderQueue = new RenderQueue();
+			var objects = new List<RenderItem>();
+
+			for (int x = -3; x <= 3; x++)
+			{
+				for (int z = -3; z <= 3; z++)
+				{
+					objects.Add(new RenderItem
+					{
+						Mesh = cube,
+						Transform = new Transform3D(
+							new Vector3(x * 2.5f, 1.0f, z * 2.5f)
+						)
+					});
+				}
+			}
+
 			while (!Raylib.WindowShouldClose())
 			{
-				if (Raylib.IsKeyDown(KeyboardKey.W))
-					camera.Position.Z -= 0.05f;
+				UpdateCamera(ref camera);
 
-				if (Raylib.IsKeyDown(KeyboardKey.S))
-					camera.Position.Z += 0.05f;
+				renderQueue.Clear();
 
-				if (Raylib.IsKeyDown(KeyboardKey.A))
-					camera.Position.X -= 0.05f;
-
-				if (Raylib.IsKeyDown(KeyboardKey.D))
-					camera.Position.X += 0.05f;
+				foreach (RenderItem item in objects)
+				{
+					item.Transform.Rotation.Y += Raylib.GetFrameTime();
+					renderQueue.Submit(item);
+				}
 
 				Raylib.BeginDrawing();
 				Raylib.ClearBackground(Color.Black);
 
 				Raylib.BeginMode3D(camera);
-				{
-					Raylib.DrawGrid(20, 1.0f);
 
-					Raylib.DrawCube(
-						new Vector3(0.0f, 1.0f, 0.0f),
-						2.0f,
-						2.0f,
-						2.0f,
-						Color.Black
-					);
+				Raylib.DrawGrid(20, 1.0f);
+				renderQueue.Draw();
 
-					Raylib.DrawCubeWires(
-						new Vector3(0.0f, 1.0f, 0.0f),
-						2.0f,
-						2.0f,
-						2.0f,
-						Color.Lime
-					);
-				}
 				Raylib.EndMode3D();
 
-				Raylib.DrawText("WASD - mover camara", 20, 20, 20, Color.White);
+				Raylib.DrawText("Malla GPU + shader GLSL", 20, 20, 20, Color.White);
 				Raylib.DrawFPS(20, 50);
 
 				Raylib.EndDrawing();
 			}
 
 			Raylib.CloseWindow();
+		}
+
+		private static void UpdateCamera(ref Camera3D camera)
+		{
+			Vector3 movement = Vector3.Zero;
+
+			if (Raylib.IsKeyDown(KeyboardKey.W))
+				movement.Z -= 0.05f;
+
+			if (Raylib.IsKeyDown(KeyboardKey.S))
+				movement.Z += 0.05f;
+
+			if (Raylib.IsKeyDown(KeyboardKey.A))
+				movement.X -= 0.05f;
+
+			if (Raylib.IsKeyDown(KeyboardKey.D))
+				movement.X += 0.05f;
+
+			camera.Position += movement;
 		}
 	}
 }
