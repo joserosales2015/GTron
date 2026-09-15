@@ -1,4 +1,7 @@
-﻿using GTron.Rendering;
+﻿#if DEBUG
+using GTron.Diagnostics;
+#endif
+using GTron.Rendering;
 using Raylib_cs;
 using System.Numerics;
 using GTron.Scene;
@@ -36,11 +39,10 @@ namespace GTron
 				"Assets/Shaders/basic.fs"
 			);
 
-			var renderQueue = new RenderQueue
-			{
-				DrawBounds = false
-			};
-
+			var renderQueue = new RenderQueue();
+#if DEBUG
+			var debugOverlay = new DebugOverlay();
+#endif
 			var objects = new List<RenderItem>();
 
 			for (int x = -20; x <= 20; x++)
@@ -59,6 +61,9 @@ namespace GTron
 
 			while (!Raylib.WindowShouldClose())
 			{
+#if DEBUG
+				FrameStats.BeginFrame();
+#endif
 				UpdateCamera(ref camera);
 
 				renderQueue.Clear();
@@ -75,8 +80,8 @@ namespace GTron
 				Raylib.BeginMode3D(camera);
 
 				Raylib.DrawGrid(20, 1.0f);
-				
-				int visibleCount = renderQueue.Draw(
+
+				renderQueue.Draw(
 					camera,
 					InternalWidth,
 					InternalHeight
@@ -85,15 +90,9 @@ namespace GTron
 				Raylib.EndMode3D();
 
 				Raylib.DrawText("Malla GPU + shader GLSL", 20, 20, 20, Color.White);
-				Raylib.DrawFPS(20, 50);
-				Raylib.DrawText(
-					$"Objetos visibles: {visibleCount} / {objects.Count}",
-					20,
-					80,
-					20,
-					Color.White
-				);
-
+#if DEBUG
+				debugOverlay.Draw();
+#endif
 				Raylib.EndDrawing();
 			}
 

@@ -29,7 +29,7 @@ public readonly struct Frustum
 	private readonly FrustumPlane _top;
 	private readonly FrustumPlane _bottom;
 
-	public Frustum(Camera3D camera, float aspectRatio, float nearDistance = 0.1f, float farDistance = 50.0f)
+	public Frustum(Camera3D camera, float aspectRatio, float nearDistance = 0.1f, float farDistance = 100.0f)
 	{
 		Vector3 forward = Vector3.Normalize(camera.Target - camera.Position);
 

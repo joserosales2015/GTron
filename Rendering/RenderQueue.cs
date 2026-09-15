@@ -1,5 +1,7 @@
-﻿using Raylib_cs;
-using System.Numerics;
+﻿#if DEBUG
+using GTron.Diagnostics;
+#endif
+using Raylib_cs;
 
 namespace GTron.Rendering;
 
@@ -7,73 +9,89 @@ public sealed class RenderQueue
 {
 	private readonly List<RenderItem> _items = new();
 
-	public bool DrawBounds { get; set; }
+	private readonly Dictionary<GpuCubeDemo, InstanceBatch> _batches = new();
+
+	private readonly List<InstanceBatch> _activeBatches = new();
 
 	public void Submit(RenderItem item)
 	{
 		_items.Add(item);
 	}
 
-	public int Draw(Camera3D camera, int screenWidth, int screenHeight)
+	public void Draw(Camera3D camera, int screenWidth, int screenHeight)
 	{
+		ResetActiveBatches();
+
+#if DEBUG
+		FrameStats.AddObjectsInScene(_items.Count);
+#endif
+
 		float aspectRatio = screenWidth / (float)screenHeight;
 
-		Frustum frustum = new Frustum(
+		Frustum frustum = new(
 			camera,
 			aspectRatio
 		);
 
-		var visibleTransforms = new List<Matrix4x4>();
-
-		GpuCubeDemo? sharedMesh = null;
-
 		foreach (RenderItem item in _items)
 		{
 			item.GetWorldAabb(
-				out Vector3 minimum,
-				out Vector3 maximum
+				out System.Numerics.Vector3 minimum,
+				out System.Numerics.Vector3 maximum
 			);
 
 			if (!frustum.ContainsAabb(minimum, maximum))
 				continue;
-			
-			sharedMesh ??= item.Mesh;
-			visibleTransforms.Add(item.WorldMatrix);
 
-			if (DrawBounds)
-			{
-				Vector3 padding = new Vector3(0.08f);
+#if DEBUG
+			FrameStats.AddObjectInsideFrustum();
+#endif
 
-				Rlgl.DisableDepthTest();
+			InstanceBatch batch = GetOrCreateBatch(item.Mesh);
 
-				Raylib.DrawBoundingBox(
-					new BoundingBox
-					{
-						Min = minimum - padding,
-						Max = maximum + padding
-					},
-					Color.Yellow
-				);
+			if (batch.Count == 0)
+				_activeBatches.Add(batch);
 
-				Rlgl.EnableDepthTest();
-			}
+			batch.Add(item.WorldMatrix);
+
+#if DEBUG
+			FrameStats.AddObjectSubmitted();
+#endif
 		}
 
-		if (sharedMesh is not null)
+		foreach (InstanceBatch batch in _activeBatches)
 		{
-			Matrix4x4[] transforms = visibleTransforms.ToArray();
+			batch.Draw();
 
-			sharedMesh.DrawInstanced(
-				transforms,
-				transforms.Length
-			);
+#if DEBUG
+			FrameStats.AddInstancedDrawCall();
+#endif
 		}
-
-		return visibleTransforms.Count;
 	}
 
 	public void Clear()
 	{
 		_items.Clear();
+	}
+
+	private InstanceBatch GetOrCreateBatch(GpuCubeDemo renderable)
+	{
+		if (_batches.TryGetValue(renderable, out InstanceBatch? batch))
+		{
+			return batch;
+		}
+
+		batch = new InstanceBatch(renderable);
+		_batches.Add(renderable, batch);
+
+		return batch;
+	}
+
+	private void ResetActiveBatches()
+	{
+		foreach (InstanceBatch batch in _activeBatches)
+			batch.Reset();
+
+		_activeBatches.Clear();
 	}
 }
