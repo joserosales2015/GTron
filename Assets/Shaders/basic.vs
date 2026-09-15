@@ -2,14 +2,19 @@
 
 in vec3 vertexPosition;
 in vec3 vertexNormal;
+in mat4 instanceTransform;
 
 uniform mat4 mvp;
-uniform mat4 matModel;
 
 out vec3 fragNormal;
 
 void main()
 {
-    fragNormal = mat3(matModel) * vertexNormal;
-    gl_Position = mvp * vec4(vertexPosition, 1.0);
+    fragNormal =
+        mat3(instanceTransform) * vertexNormal;
+
+    gl_Position =
+        mvp *
+        instanceTransform *
+        vec4(vertexPosition, 1.0);
 }

@@ -26,6 +26,19 @@ public sealed unsafe class GpuCubeDemo : IDisposable
 		Raylib.DrawMesh(_mesh, _material, transform);
 	}
 
+	public void DrawInstanced(Matrix4x4[] transforms, int instanceCount)
+	{
+		if (instanceCount <= 0)
+			return;
+
+		Raylib.DrawMeshInstanced(
+			_mesh,
+			_material,
+			transforms,
+			instanceCount
+		);
+	}
+
 	public void Dispose()
 	{
 		Raylib.UnloadMaterial(_material);

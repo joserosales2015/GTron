@@ -25,7 +25,7 @@ namespace GTron
 			var camera = new Camera3D
 			{
 				Position = new Vector3(6.0f, 4.0f, 6.0f),
-				Target = new Vector3(0.0f, 1.0f, 0.0f),
+				Target = new Vector3(0.0f, 4.0f, 0.0f),
 				Up = Vector3.UnitY,
 				FovY = 45.0f,
 				Projection = CameraProjection.Perspective
@@ -36,12 +36,16 @@ namespace GTron
 				"Assets/Shaders/basic.fs"
 			);
 
-			var renderQueue = new RenderQueue();
+			var renderQueue = new RenderQueue
+			{
+				DrawBounds = false
+			};
+
 			var objects = new List<RenderItem>();
 
-			for (int x = -3; x <= 3; x++)
+			for (int x = -20; x <= 20; x++)
 			{
-				for (int z = -3; z <= 3; z++)
+				for (int z = -20; z <= 20; z++)
 				{
 					objects.Add(new RenderItem
 					{

@@ -7,6 +7,8 @@ public sealed class RenderQueue
 {
 	private readonly List<RenderItem> _items = new();
 
+	public bool DrawBounds { get; set; }
+
 	public void Submit(RenderItem item)
 	{
 		_items.Add(item);
@@ -21,7 +23,9 @@ public sealed class RenderQueue
 			aspectRatio
 		);
 
-		int visibleCount = 0;
+		var visibleTransforms = new List<Matrix4x4>();
+
+		GpuCubeDemo? sharedMesh = null;
 
 		foreach (RenderItem item in _items)
 		{
@@ -32,22 +36,40 @@ public sealed class RenderQueue
 
 			if (!frustum.ContainsAabb(minimum, maximum))
 				continue;
+			
+			sharedMesh ??= item.Mesh;
+			visibleTransforms.Add(item.WorldMatrix);
 
-			item.Mesh.Draw(item.WorldMatrix);
+			if (DrawBounds)
+			{
+				Vector3 padding = new Vector3(0.08f);
 
-			Raylib.DrawBoundingBox(
-				new BoundingBox
-				{
-					Min = minimum,
-					Max = maximum
-				},
-				Color.Yellow
-			);
+				Rlgl.DisableDepthTest();
 
-			visibleCount++;
+				Raylib.DrawBoundingBox(
+					new BoundingBox
+					{
+						Min = minimum - padding,
+						Max = maximum + padding
+					},
+					Color.Yellow
+				);
+
+				Rlgl.EnableDepthTest();
+			}
 		}
 
-		return visibleCount;
+		if (sharedMesh is not null)
+		{
+			Matrix4x4[] transforms = visibleTransforms.ToArray();
+
+			sharedMesh.DrawInstanced(
+				transforms,
+				transforms.Length
+			);
+		}
+
+		return visibleTransforms.Count;
 	}
 
 	public void Clear()
