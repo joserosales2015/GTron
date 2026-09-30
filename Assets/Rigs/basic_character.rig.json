@@ -1,0 +1,122 @@
+{
+  "parts": [
+    {
+      "name": "torso",
+      "model": "Character/torso.glb",
+      "parent": null,
+      "restPosition": [ 0.0, 0.0, 0.0 ],
+      "jointAxis": null
+    },
+    {
+      "name": "head",
+      "model": "Character/head.glb",
+      "parent": "torso",
+      "restPosition": [ 0.0, 0.75, -0.15 ],
+      "jointAxis": null
+    },
+
+    {
+      "name": "upper-arm-left",
+      "model": "Character/upper-arm-left.glb",
+      "parent": "torso",
+      "restPosition": [ 0.725, 0.45, 0.0 ],
+      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "minAngleDegrees": 0.0,
+      "maxAngleDegrees": 90.0
+    },
+    {
+      "name": "lower-arm-left",
+      "model": "Character/lower-arm-left.glb",
+      "parent": "upper-arm-left",
+      "restPosition": [ 1.0, -0.125, -0.05 ],
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
+      "minAngleDegrees": -135.0,
+      "maxAngleDegrees": 0.0
+    },
+    {
+      "name": "hand-left",
+      "model": "Character/hand-left.glb",
+      "parent": "lower-arm-left",
+      "restPosition": [ 1.0, -0.975, 0.0 ],
+      "jointAxis": null
+    },
+
+    {
+      "name": "upper-arm-right",
+      "model": "Character/upper-arm-right.glb",
+      "parent": "torso",
+      "restPosition": [ -0.725, 0.45, 0.0 ],
+      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "minAngleDegrees": -90.0,
+      "maxAngleDegrees": 0.0
+    },
+    {
+      "name": "lower-arm-right",
+      "model": "Character/lower-arm-right.glb",
+      "parent": "upper-arm-right",
+      "restPosition": [ -1.0, -0.125, -0.05 ],
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
+      "minAngleDegrees": -135.0,
+      "maxAngleDegrees": 0.0
+    },
+    {
+      "name": "hand-right",
+      "model": "Character/hand-right.glb",
+      "parent": "lower-arm-right",
+      "restPosition": [ -1.0, -0.975, 0.0 ],
+      "jointAxis": null
+    },
+
+    {
+      "name": "upper-leg-left",
+      "model": "Character/upper-leg-left.glb",
+      "parent": "torso",
+      "restPosition": [ 0.35, -0.75, -0.1 ],
+      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "minAngleDegrees": -75.0,
+      "maxAngleDegrees": 75.0
+    },
+    {
+      "name": "lower-leg-left",
+      "model": "Character/lower-leg-left.glb",
+      "parent": "upper-leg-left",
+      "restPosition": [ 0.35, -2.025, 0.1 ],
+      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "minAngleDegrees": -135.0,
+      "maxAngleDegrees": 0.0
+    },
+    {
+      "name": "foot-left",
+      "model": "Character/foot-left.glb",
+      "parent": "lower-leg-left",
+      "restPosition": [ 0.35, -3.475, -0.1 ],
+      "jointAxis": null
+    },
+
+    {
+      "name": "upper-leg-right",
+      "model": "Character/upper-leg-right.glb",
+      "parent": "torso",
+      "restPosition": [ -0.35, -0.75, -0.1 ],
+      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "minAngleDegrees": -75.0,
+      "maxAngleDegrees": 75.0
+    },
+    {
+      "name": "lower-leg-right",
+      "model": "Character/lower-leg-right.glb",
+      "parent": "upper-leg-right",
+      "restPosition": [ -0.35, -2.025, 0.1 ],
+      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "minAngleDegrees": -135.0,
+      "maxAngleDegrees": 0.0
+    },
+    {
+      "name": "foot-right",
+      "model": "Character/foot-right.glb",
+      "parent": "lower-leg-right",
+      "restPosition": [ -0.35, -3.475, -0.1 ],
+      "jointAxis": null
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+﻿using GTron.Engine.Resources;
+using Raylib_cs;
+using System;
+using System.Collections.Generic;
+using System.Numerics;
+using System.Text;
+using GTron.Engine.Characters;
+
+namespace GTron.Game.Scenes
+{
+	public sealed class DemoScene : IGameScene
+	{
+		private Texture2D _wallTexture;
+		private CharacterRig _character = null!;
+
+		private float _shoulderAngleDegrees;
+		private float _elbowAngleDegrees;
+
+		// Iluminación direccional
+		private Shader _lightingShader;
+
+		private int _lightDirectionLocation;
+		private int _lightColorLocation;
+		private int _ambientColorLocation;
+		private bool _drawWireframe;
+
+		private Camera3D _camera = new()
+		{
+			Position = new Vector3(0f, 1f, 6f),
+			Target = new Vector3(0f, 0f, 0f),
+			Up = Vector3.UnitY,
+			FovY = 50,
+			Projection = CameraProjection.Perspective
+		};
+
+		private void ApplyLightingShader(ref Model model)
+		{
+			for (int materialIndex = 0;
+				 materialIndex < model.MaterialCount;
+				 materialIndex++)
+			{
+				Raylib.SetMaterialShader(
+					ref model,
+					materialIndex,
+					ref _lightingShader);
+			}
+		}
+
+		private void ChangeCameraDistance(float deltaDistance)
+		{
+			Vector3 direction = Vector3.Normalize(_camera.Position - _camera.Target);
+
+			float currentDistance = Vector3.Distance(_camera.Position, _camera.Target);
+
+			float newDistance = MathF.Max(1f, currentDistance + deltaDistance);
+
+			_camera.Position = _camera.Target + direction * newDistance;
+		}
+
+		private void ConfigureLighting()
+		{
+			Vector3 direction = Vector3.Normalize(
+				new Vector3(-1.45f, -0.5f, -1.0f));
+
+			Vector4 lightColor = new(1f, 0.95f, 0.82f, 1f);
+
+			Vector4 ambientColor = new(0.24f, 0.28f, 0.36f, 1f);
+
+			Raylib.SetShaderValue(
+				_lightingShader,
+				_lightDirectionLocation,
+				direction,
+				ShaderUniformDataType.Vec3);
+
+			Raylib.SetShaderValue(
+				_lightingShader,
+				_lightColorLocation,
+				lightColor,
+				ShaderUniformDataType.Vec4);
+
+			Raylib.SetShaderValue(
+				_lightingShader,
+				_ambientColorLocation,
+				ambientColor,
+				ShaderUniformDataType.Vec4);
+		}
+
+		public void Draw()
+		{
+			Raylib.ClearBackground(new Color(0, 0, 0, 255));
+
+			// Decoración de fondo.
+			//Raylib.DrawTexturePro(
+			//	_wallTexture,
+			//	new Rectangle(0, 0, _wallTexture.Width, _wallTexture.Height),
+			//	new Rectangle(90, 230, 180, 190),
+			//	Vector2.Zero,
+			//	0f,
+			//	Color.White);
+
+			Raylib.BeginMode3D(_camera);
+
+			//Raylib.DrawGrid(20, 1f);
+
+			if (_drawWireframe)
+			{
+				_character.DrawWireframe(new Color(0, 255, 0, 255));
+			}
+			else
+			{
+				_character.Draw();
+			}
+
+			Raylib.EndMode3D();
+
+			Raylib.DrawText("F3: wireframe | ←/→: mover | A/D: hombro | W/S: codo",	24, 505, 18, Color.White);
+
+			Raylib.DrawFPS(840, 20);
+		}
+
+		public void Load(AssetManager assets)
+		{
+			_wallTexture = assets.LoadTexture("wall.png");
+			_character = CharacterRigLoader.Load(assets, "basic_character.rig.json");
+
+			// Cargar el shader de iluminación direccional
+			_lightingShader = assets.LoadShader("lighting.vs", "directional_light.fs");
+			_lightDirectionLocation = Raylib.GetShaderLocation(_lightingShader,	"lightDirection");
+			_lightColorLocation = Raylib.GetShaderLocation(_lightingShader,	"lightColor");
+			_ambientColorLocation = Raylib.GetShaderLocation(_lightingShader, "ambientColor");
+
+			ConfigureLighting();
+
+			_character.ApplyShader(ref _lightingShader);
+		}
+
+		public void Update(float deltaTime)
+		{
+			const float cameraSpeed = 4f;
+
+			
+			//if (Raylib.IsKeyDown(KeyboardKey.Q))
+			//{
+			//	_camera.FovY = MathF.Max(1f, _camera.FovY - deltaTime * 10f);
+			//}
+
+			//if (Raylib.IsKeyDown(KeyboardKey.E))
+			//{
+			//	_camera.FovY = MathF.Min(80f, _camera.FovY + deltaTime * 10f);
+			//}
+
+			const float rotationSpeed = 120f;
+
+			if (Raylib.IsKeyPressed(KeyboardKey.F3))
+			{
+				_drawWireframe = !_drawWireframe;
+			}
+
+			if (Raylib.IsKeyDown(KeyboardKey.A))
+			{
+				_shoulderAngleDegrees += rotationSpeed * deltaTime;
+			}
+
+			if (Raylib.IsKeyDown(KeyboardKey.D))
+			{
+				_shoulderAngleDegrees -= rotationSpeed * deltaTime;
+			}
+
+			if (Raylib.IsKeyDown(KeyboardKey.W))
+			{
+				_elbowAngleDegrees += rotationSpeed * deltaTime;
+			}
+
+			if (Raylib.IsKeyDown(KeyboardKey.S))
+			{
+				_elbowAngleDegrees -= rotationSpeed * deltaTime;
+			}
+
+			const float characterSpeed = 3f;
+
+			if (Raylib.IsKeyDown(KeyboardKey.Up))
+			{
+				ChangeCameraDistance(-cameraSpeed * deltaTime);
+			}
+
+			if (Raylib.IsKeyDown(KeyboardKey.Down))
+			{
+				ChangeCameraDistance(cameraSpeed * deltaTime);
+			}
+
+			if (Raylib.IsKeyDown(KeyboardKey.Left))
+			{
+				_character.Position -= Vector3.UnitX * characterSpeed * deltaTime;
+			}
+
+			if (Raylib.IsKeyDown(KeyboardKey.Right))
+			{
+				_character.Position += Vector3.UnitX * characterSpeed * deltaTime;
+			}
+
+			_shoulderAngleDegrees = _character.SetJointAngleDegrees("upper-arm-left", _shoulderAngleDegrees);
+
+			_elbowAngleDegrees = _character.SetJointAngleDegrees("lower-arm-left", _elbowAngleDegrees);
+
+			_character.UpdateTransforms();
+		}
+	}
+}
