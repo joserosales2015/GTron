@@ -16,6 +16,10 @@ namespace GTron.Engine.Core
 
 		public void Run(IGameScene scene)
 		{
+			Raylib.SetConfigFlags(
+				ConfigFlags.Msaa4xHint |
+				ConfigFlags.VSyncHint);
+
 			Raylib.InitWindow(
 				GameSettings.InternalWidth,
 				GameSettings.InternalHeight,

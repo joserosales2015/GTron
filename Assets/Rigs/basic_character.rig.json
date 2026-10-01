@@ -20,8 +20,8 @@
       "model": "Character/upper-arm-left.glb",
       "parent": "torso",
       "restPosition": [ 0.725, 0.45, 0.0 ],
-      "jointAxis": [ 0.0, 0.0, 1.0 ],
-      "minAngleDegrees": 0.0,
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
+      "minAngleDegrees": -90.0,
       "maxAngleDegrees": 90.0
     },
     {
@@ -46,9 +46,9 @@
       "model": "Character/upper-arm-right.glb",
       "parent": "torso",
       "restPosition": [ -0.725, 0.45, 0.0 ],
-      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
       "minAngleDegrees": -90.0,
-      "maxAngleDegrees": 0.0
+      "maxAngleDegrees": 90.0
     },
     {
       "name": "lower-arm-right",
@@ -72,7 +72,7 @@
       "model": "Character/upper-leg-left.glb",
       "parent": "torso",
       "restPosition": [ 0.35, -0.75, -0.1 ],
-      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
       "minAngleDegrees": -75.0,
       "maxAngleDegrees": 75.0
     },
@@ -81,7 +81,7 @@
       "model": "Character/lower-leg-left.glb",
       "parent": "upper-leg-left",
       "restPosition": [ 0.35, -2.025, 0.1 ],
-      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
       "minAngleDegrees": -135.0,
       "maxAngleDegrees": 0.0
     },
@@ -98,7 +98,7 @@
       "model": "Character/upper-leg-right.glb",
       "parent": "torso",
       "restPosition": [ -0.35, -0.75, -0.1 ],
-      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
       "minAngleDegrees": -75.0,
       "maxAngleDegrees": 75.0
     },
@@ -107,7 +107,7 @@
       "model": "Character/lower-leg-right.glb",
       "parent": "upper-leg-right",
       "restPosition": [ -0.35, -2.025, 0.1 ],
-      "jointAxis": [ 0.0, 0.0, 1.0 ],
+      "jointAxis": [ 1.0, 0.0, 0.0 ],
       "minAngleDegrees": -135.0,
       "maxAngleDegrees": 0.0
     },

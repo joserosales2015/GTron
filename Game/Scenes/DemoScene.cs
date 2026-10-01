@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using GTron.Engine.Characters;
+using GTron.Engine.Animation;
 
 namespace GTron.Game.Scenes
 {
@@ -23,6 +24,8 @@ namespace GTron.Game.Scenes
 		private int _lightColorLocation;
 		private int _ambientColorLocation;
 		private bool _drawWireframe;
+		private readonly AnimationPlayer _animationPlayer = new();
+		private AnimationClip _walkAnimation = null!;
 
 		private Camera3D _camera = new()
 		{
@@ -85,6 +88,31 @@ namespace GTron.Game.Scenes
 				ShaderUniformDataType.Vec4);
 		}
 
+		private static AnimationClip CreateWalkAnimation()
+		{
+			const float duration = 0.8f;
+
+			return new AnimationClip(duration)
+
+				// Piernas: una avanza mientras la otra retrocede.
+				.AddKeyframe("upper-leg-left", 0f, 35f)
+				.AddKeyframe("upper-leg-left", 0.4f, -35f)
+				.AddKeyframe("upper-leg-left", 0.8f, 35f)
+
+				.AddKeyframe("upper-leg-right", 0f, -35f)
+				.AddKeyframe("upper-leg-right", 0.4f, 35f)
+				.AddKeyframe("upper-leg-right", 0.8f, -35f)
+
+				// Brazos: movimiento contrario a las piernas.
+				.AddKeyframe("upper-arm-left", 0f, -45f)
+				.AddKeyframe("upper-arm-left", 0.4f, 45f)
+				.AddKeyframe("upper-arm-left", 0.8f, -45f)
+
+				.AddKeyframe("upper-arm-right", 0f, 45f)
+				.AddKeyframe("upper-arm-right", 0.4f, -45f)
+				.AddKeyframe("upper-arm-right", 0.8f, 45f);
+		}
+
 		public void Draw()
 		{
 			Raylib.ClearBackground(new Color(0, 0, 0, 255));
@@ -113,7 +141,7 @@ namespace GTron.Game.Scenes
 
 			Raylib.EndMode3D();
 
-			Raylib.DrawText("F3: wireframe | ←/→: mover | A/D: hombro | W/S: codo",	24, 505, 18, Color.White);
+			Raylib.DrawText("ESPACIO: caminar | F3: wireframe | Flechas: mover/cámara",	24, 505, 18, Color.White);
 
 			Raylib.DrawFPS(840, 20);
 		}
@@ -122,6 +150,7 @@ namespace GTron.Game.Scenes
 		{
 			_wallTexture = assets.LoadTexture("wall.png");
 			_character = CharacterRigLoader.Load(assets, "basic_character.rig.json");
+			_walkAnimation = CreateWalkAnimation();
 
 			// Cargar el shader de iluminación direccional
 			_lightingShader = assets.LoadShader("lighting.vs", "directional_light.fs");
@@ -137,8 +166,8 @@ namespace GTron.Game.Scenes
 		public void Update(float deltaTime)
 		{
 			const float cameraSpeed = 4f;
+			const float rotationSpeed = 120f;
 
-			
 			//if (Raylib.IsKeyDown(KeyboardKey.Q))
 			//{
 			//	_camera.FovY = MathF.Max(1f, _camera.FovY - deltaTime * 10f);
@@ -149,7 +178,17 @@ namespace GTron.Game.Scenes
 			//	_camera.FovY = MathF.Min(80f, _camera.FovY + deltaTime * 10f);
 			//}
 
-			const float rotationSpeed = 120f;
+			if (Raylib.IsKeyPressed(KeyboardKey.Space))
+			{
+				if (_animationPlayer.IsPlaying)
+				{
+					_animationPlayer.Stop();
+				}
+				else
+				{
+					_animationPlayer.Play(_walkAnimation);
+				}
+			}
 
 			if (Raylib.IsKeyPressed(KeyboardKey.F3))
 			{
@@ -201,6 +240,23 @@ namespace GTron.Game.Scenes
 			_shoulderAngleDegrees = _character.SetJointAngleDegrees("upper-arm-left", _shoulderAngleDegrees);
 
 			_elbowAngleDegrees = _character.SetJointAngleDegrees("lower-arm-left", _elbowAngleDegrees);
+
+			if (_animationPlayer.IsPlaying)
+			{
+				_animationPlayer.Update(deltaTime, _character);
+			}
+			else
+			{
+				_shoulderAngleDegrees = _character.SetJointAngleDegrees(
+					"upper-arm-left",
+					_shoulderAngleDegrees);
+
+				_elbowAngleDegrees = _character.SetJointAngleDegrees(
+					"lower-arm-left",
+					_elbowAngleDegrees);
+
+				_character.UpdateTransforms();
+			}
 
 			_character.UpdateTransforms();
 		}
