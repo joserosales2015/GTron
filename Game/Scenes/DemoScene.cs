@@ -162,6 +162,14 @@ namespace GTron.Game.Scenes
 
 			_character.ApplyShader(ref _lightingShader);
 		}
+			
+		private void ResetCharacterPose()
+		{
+			_character.ResetPose();
+
+			_shoulderAngleDegrees = 0f;
+			_elbowAngleDegrees = 0f;
+		}
 
 		public void Update(float deltaTime)
 		{
@@ -180,6 +188,8 @@ namespace GTron.Game.Scenes
 
 			if (Raylib.IsKeyPressed(KeyboardKey.Space))
 			{
+				ResetCharacterPose();
+
 				if (_animationPlayer.IsPlaying)
 				{
 					_animationPlayer.Stop();
@@ -195,24 +205,27 @@ namespace GTron.Game.Scenes
 				_drawWireframe = !_drawWireframe;
 			}
 
-			if (Raylib.IsKeyDown(KeyboardKey.A))
+			if (!_animationPlayer.IsPlaying)
 			{
-				_shoulderAngleDegrees += rotationSpeed * deltaTime;
-			}
+				if (Raylib.IsKeyDown(KeyboardKey.A))
+				{
+					_shoulderAngleDegrees += rotationSpeed * deltaTime;
+				}
 
-			if (Raylib.IsKeyDown(KeyboardKey.D))
-			{
-				_shoulderAngleDegrees -= rotationSpeed * deltaTime;
-			}
+				if (Raylib.IsKeyDown(KeyboardKey.D))
+				{
+					_shoulderAngleDegrees -= rotationSpeed * deltaTime;
+				}
 
-			if (Raylib.IsKeyDown(KeyboardKey.W))
-			{
-				_elbowAngleDegrees += rotationSpeed * deltaTime;
-			}
+				if (Raylib.IsKeyDown(KeyboardKey.W))
+				{
+					_elbowAngleDegrees += rotationSpeed * deltaTime;
+				}
 
-			if (Raylib.IsKeyDown(KeyboardKey.S))
-			{
-				_elbowAngleDegrees -= rotationSpeed * deltaTime;
+				if (Raylib.IsKeyDown(KeyboardKey.S))
+				{
+					_elbowAngleDegrees -= rotationSpeed * deltaTime;
+				}
 			}
 
 			const float characterSpeed = 3f;
@@ -237,25 +250,16 @@ namespace GTron.Game.Scenes
 				_character.Position += Vector3.UnitX * characterSpeed * deltaTime;
 			}
 
-			_shoulderAngleDegrees = _character.SetJointAngleDegrees("upper-arm-left", _shoulderAngleDegrees);
-
-			_elbowAngleDegrees = _character.SetJointAngleDegrees("lower-arm-left", _elbowAngleDegrees);
-
 			if (_animationPlayer.IsPlaying)
 			{
 				_animationPlayer.Update(deltaTime, _character);
 			}
 			else
 			{
-				_shoulderAngleDegrees = _character.SetJointAngleDegrees(
-					"upper-arm-left",
-					_shoulderAngleDegrees);
-
-				_elbowAngleDegrees = _character.SetJointAngleDegrees(
-					"lower-arm-left",
-					_elbowAngleDegrees);
-
-				_character.UpdateTransforms();
+				_shoulderAngleDegrees = _character.SetJointAngleDegrees("upper-arm-left", _shoulderAngleDegrees);
+				_elbowAngleDegrees = _character.SetJointAngleDegrees("lower-arm-left", _elbowAngleDegrees);
+				_shoulderAngleDegrees = _character.SetJointAngleDegrees("upper-arm-right", _shoulderAngleDegrees);
+				_elbowAngleDegrees = _character.SetJointAngleDegrees("lower-arm-right", _elbowAngleDegrees);
 			}
 
 			_character.UpdateTransforms();

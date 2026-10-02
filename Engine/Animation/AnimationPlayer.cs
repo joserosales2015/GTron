@@ -36,6 +36,6 @@ public sealed class AnimationPlayer
 		}
 
 		_clip.Apply(rig, _time);
-		rig.UpdateTransforms();
+		//rig.UpdateTransforms();
 	}
 }

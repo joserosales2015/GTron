@@ -10,6 +10,14 @@ public sealed class AnimationClip
 
 	public AnimationClip(float duration)
 	{
+		if (!float.IsFinite(duration) || duration <= 0f)
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(duration),
+				duration,
+				"La duración de la animación debe ser positiva y finita.");
+		}
+
 		Duration = duration;
 	}
 

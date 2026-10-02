@@ -21,13 +21,13 @@ namespace GTron.Engine.Characters
 				?? throw new InvalidOperationException(
 					$"No se pudo leer el rig '{rigRelativePath}'.");
 
+			ValidateRigDefinition(definition);
+
 			var parts = new Dictionary<string, RigidPart>(
 				StringComparer.Ordinal);
 
 			foreach (RigPartDefinition partDefinition in definition.Parts)
 			{
-				ValidateDefinition(partDefinition);
-
 				var part = new RigidPart(
 					partDefinition.Name,
 					assets.LoadModel(partDefinition.Model),
@@ -93,7 +93,7 @@ namespace GTron.Engine.Characters
 					$"La pieza '{definition.Name}' no tiene modelo.");
 			}
 
-			if (definition.RestPosition.Length != 3)
+			if (definition.RestPosition is null || definition.RestPosition.Length != 3)
 			{
 				throw new InvalidOperationException(
 					$"restPosition de '{definition.Name}' debe tener 3 valores.");
@@ -112,6 +112,88 @@ namespace GTron.Engine.Characters
 			{
 				throw new InvalidOperationException(
 					$"Los límites de '{definition.Name}' son inválidos.");
+			}
+		}
+
+		private static void ValidateRigDefinition(RigDefinition definition)
+		{
+			if (definition.Parts is null || definition.Parts.Count == 0)
+			{
+				throw new InvalidOperationException("El rig debe contener al menos una pieza.");
+			}
+
+			var definitionsByName = new Dictionary<string, RigPartDefinition>(
+				StringComparer.Ordinal);
+
+			foreach (RigPartDefinition part in definition.Parts)
+			{
+				if (part is null)
+				{
+					throw new InvalidOperationException("El rig contiene una pieza nula.");
+				}
+
+				ValidateDefinition(part);
+
+				if (!definitionsByName.TryAdd(part.Name, part))
+				{
+					throw new InvalidOperationException($"El rig contiene dos piezas llamadas '{part.Name}'.");
+				}
+			}
+
+			int rootCount = 0;
+
+			foreach (RigPartDefinition part in definition.Parts)
+			{
+				if (string.IsNullOrWhiteSpace(part.Parent))
+				{
+					rootCount++;
+					continue;
+				}
+
+				if (part.Parent == part.Name)
+				{
+					throw new InvalidOperationException($"La pieza '{part.Name}' no puede ser su propio padre.");
+				}
+
+				if (!definitionsByName.ContainsKey(part.Parent))
+				{
+					throw new InvalidOperationException(
+						$"La pieza '{part.Name}' referencia al padre " +
+						$"inexistente '{part.Parent}'.");
+				}
+			}
+
+			if (rootCount == 0)
+			{
+				throw new InvalidOperationException("El rig debe contener al menos una pieza raíz.");
+			}
+
+			var validated = new HashSet<string>(StringComparer.Ordinal);
+			var currentPath = new HashSet<string>(StringComparer.Ordinal);
+
+			foreach (RigPartDefinition part in definition.Parts)
+			{
+				currentPath.Clear();
+				RigPartDefinition current = part;
+
+				while (!validated.Contains(current.Name))
+				{
+					if (!currentPath.Add(current.Name))
+					{
+						throw new InvalidOperationException(
+							$"El rig contiene un ciclo de parentesco " +
+							$"que incluye la pieza '{current.Name}'.");
+					}
+
+					if (string.IsNullOrWhiteSpace(current.Parent))
+					{
+						break;
+					}
+
+					current = definitionsByName[current.Parent];
+				}
+
+				validated.UnionWith(currentPath);
 			}
 		}
 

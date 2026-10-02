@@ -54,6 +54,14 @@ namespace GTron.Engine.Characters
 			return part;
 		}
 
+		public void ResetPose()
+		{
+			foreach (RigidPart part in _parts.Values)
+			{
+				part.SetJointAngleDegrees(0f);
+			}
+		}
+
 		public float SetJointAngleDegrees(string partName, float degrees)
 		{
 			return GetPart(partName).SetJointAngleDegrees(degrees);
